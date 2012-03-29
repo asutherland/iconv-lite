@@ -6,10 +6,10 @@ var iconv = module.exports = {
     fromEncoding: function(buf, encoding) {
         return iconv.getCodec(encoding).fromEncoding(buf);
     },
-    
+
     defaultCharUnicode: '�',
     defaultCharSingleByte: '?',
-    
+
     // Get correct codec for given encoding.
     getCodec: function(encoding) {
         var enc = encoding || "utf8";
@@ -28,7 +28,7 @@ var iconv = module.exports = {
                 // Options for other encoding.
                 codecOptions = codec;
                 enc = codec.type;
-            } 
+            }
             else if (type === "Function")
                 // Codec itself.
                 return codec(codecOptions);
@@ -36,7 +36,7 @@ var iconv = module.exports = {
                 throw new Error("Encoding not recognized: '" + encoding + "' (searched as: '"+enc+"')");
         }
     },
-    
+
     // Define basic encodings
     encodings: {
         internal: function(options) {
@@ -58,16 +58,16 @@ var iconv = module.exports = {
             type: "internal",
             originalEncoding: "binary"
         },
-        
+
         // Codepage single-byte encodings.
         singlebyte: function(options) {
             // Prepare chars if needed
             if (!options.chars || (options.chars.length !== 128 && options.chars.length !== 256))
                 throw new Error("Encoding '"+options.type+"' has incorrect 'chars' (must be of len 128 or 256)");
-            
+
             if (options.chars.length === 128)
                 options.chars = asciiString + options.chars;
-            
+
             if (!options.charsBuf) {
                 options.charsBuf = new Buffer(256*2);
                 for (var i = 0; i < options.chars.length; i++) {
@@ -76,7 +76,7 @@ var iconv = module.exports = {
                     options.charsBuf[i*2+1] = code >>> 8;
                 }
             }
-            
+
             if (!options.revCharsBuf) {
                 options.revCharsBuf = new Buffer(65536);
                 var defChar = iconv.defaultCharSingleByte.charCodeAt(0);
@@ -85,21 +85,21 @@ var iconv = module.exports = {
                 for (var i = 0; i < options.chars.length; i++)
                     options.revCharsBuf[options.chars.charCodeAt(i)] = i;
             }
-            
+
             return {
                 toEncoding: function(str) {
                     str = ensureString(str);
-                    
+
                     var buf = new Buffer(str.length);
                     var revCharsBuf = options.revCharsBuf;
                     for (var i = 0; i < str.length; i++)
                         buf[i] = revCharsBuf[str.charCodeAt(i)];
-                    
+
                     return buf;
                 },
                 fromEncoding: function(buf) {
                     buf = ensureBuffer(buf);
-                    
+
                     // As string are immutable in JS, we use ucs2 buffer to speed up computations.
                     var charsBuf = options.charsBuf;
                     var newBuf = new Buffer(buf.length*2);
@@ -126,7 +126,7 @@ var iconv = module.exports = {
                     revCharsTable[table[key]] = parseInt(key);
                 }
             }
-            
+
             return {
                 toEncoding: function(str) {
                     str = ensureString(str);
@@ -184,14 +184,17 @@ iconv.encode = iconv.toEncoding;
 iconv.decode = iconv.fromEncoding;
 
 // Load other encodings from files in /encodings dir.
-var encodingsDir = __dirname+"/encodings/",
-    fs = require('fs');
-fs.readdirSync(encodingsDir).forEach(function(file) {
-    if(fs.statSync(encodingsDir + file).isDirectory()) return;
-    var encodings = require(encodingsDir + file)
-    for (var key in encodings)
-        iconv.encodings[key] = encodings[key]
-});
+
+function mixinEncodings(encodings) {
+  for (var key in encodings)
+    iconv.encodings[key] = encodings[key];
+}
+mixinEncodings(require("./encodings/cyrillic"));
+mixinEncodings(require("./encodings/gbk"));
+mixinEncodings(require("./encodings/greek"));
+mixinEncodings(require("./encodings/western"));
+mixinEncodings(require("./encodings/cyrillic"));
+
 
 // Utilities
 var asciiString = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f'+
