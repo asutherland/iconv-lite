@@ -193,7 +193,6 @@ mixinEncodings(require("./encodings/cyrillic"));
 mixinEncodings(require("./encodings/gbk"));
 mixinEncodings(require("./encodings/greek"));
 mixinEncodings(require("./encodings/western"));
-mixinEncodings(require("./encodings/cyrillic"));
 
 
 // Utilities
