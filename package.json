@@ -10,7 +10,7 @@
         "Adamansky Anton (https://github.com/adamansky)",
         "George Stagas (https://github.com/stagas)"
     ],
-    
+    "main": "index.js",   
     "homepage": "http://github.com/ashtuchkin/node-iconv/",
     "repository": {
         "type": "git",
